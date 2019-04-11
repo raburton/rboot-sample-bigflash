@@ -137,8 +137,7 @@ LOCAL void uart0_rx_intr_handler(void *para)
 
         // insert here for get one command line from uart
 		uart_tx_one_char(RcvChar);
-        if (RcvChar == '\r') continue;
-		if (RcvChar == '\n') {
+		if ((RcvChar == '\r') || (RcvChar == '\n')) {
 
 			int len;
 			char *str;
@@ -148,9 +147,11 @@ LOCAL void uart0_rx_intr_handler(void *para)
 			str = (char*)os_zalloc(len+1);
 			if (str) {
 				uint8 loop;
-				for (loop = 0; loop < len; loop++) str[loop] = uart0_rx_one_char();
-				str[len] = '\0';
-				ProcessCommand(str);
+				for (loop = 0; loop < len; loop++) {
+					str[loop] = uart0_rx_one_char();
+					if ((str[loop] == '\r') || (str[loop] == '\n')) str[loop] = '\0';
+				}
+				if (os_strlen(str) > 0) ProcessCommand(str);
 				os_free(str);
 			}
 
